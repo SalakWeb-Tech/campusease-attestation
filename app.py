@@ -1,10 +1,10 @@
 # app.py
 # CampusEase Ezigbo — Attestation Letter Generator
-# Phase 1: Signup → Letter Details → Generate → Download → Link
+# Phase 1: Signup → Letter Details → Preview → Download → Link
 
 import tempfile
 from pathlib import Path
-from datetime import date
+from datetime import date, timedelta
 
 import streamlit as st
 
@@ -57,6 +57,31 @@ PARENT_TITLES = [
 ]
 
 # ============================================================
+# DATE HELPER — standard English ordinal (1st, 2nd, 3rd, 4th...)
+# Handles all edge cases: 11th, 12th, 13th, 21st, 22nd, 23rd, 31st
+# ============================================================
+def _ordinal(n: int) -> str:
+    """Return n with the correct English ordinal suffix."""
+    if 10 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+# ============================================================
+# DAY-COUNT HELPER — respects month lengths + leap years
+# ============================================================
+def _days_in_month(year: int, month: int) -> int:
+    """Return the number of days in a given month/year (leap-aware)."""
+    if month == 12:
+        next_month = date(year + 1, 1, 1)
+    else:
+        next_month = date(year, month + 1, 1)
+    return (next_month - timedelta(days=1)).day
+
+
+# ============================================================
 # ICONS (inline SVG — Lucide-style, no emojis)
 # ============================================================
 ICONS = {
@@ -80,7 +105,6 @@ st.markdown(
         .stApp { background-color: #ffffff; }
         h1, h2, h3 { color: #0B1F4B !important; }
 
-        /* Icon base styles */
         .icon {
             display: inline-block;
             width: 16px;
@@ -92,114 +116,106 @@ st.markdown(
         }
         .icon-lg { width: 22px; height: 22px; vertical-align: -5px; margin-right: 8px; }
 
-/* ---------- NAVY BRAND HEADER ---------- */
-.brand-header {
-    position: relative;
-    background: linear-gradient(135deg, #0B1F4B 0%, #16336b 55%, #0B1F4B 100%);
-    text-align: center;
-    padding: 34px 20px 30px 20px;
-    border-bottom: 4px solid #F5B301;
-    margin: -1rem -1rem 26px -1rem;
-    border-radius: 0 0 14px 14px;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(11, 31, 75, 0.25);
-}
+        /* ---------- NAVY BRAND HEADER ---------- */
+        .brand-header {
+            position: relative;
+            background: linear-gradient(135deg, #0B1F4B 0%, #16336b 55%, #0B1F4B 100%);
+            text-align: center;
+            padding: 34px 20px 30px 20px;
+            border-bottom: 4px solid #F5B301;
+            margin: -1rem -1rem 26px -1rem;
+            border-radius: 0 0 14px 14px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(11, 31, 75, 0.25);
+        }
+        .brand-header h1 {
+            color: #FFFFFF;
+            font-size: 2.3rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .brand-header h1 span { color: #F5B301; }
+        .brand-header p {
+            color: #F5B301;
+            font-style: italic;
+            font-weight: 600;
+            margin: 8px 0 0 0;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 2;
+        }
 
-.brand-header h1 {
-    color: #FFFFFF;
-    font-size: 2.3rem;
-    margin: 0;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    position: relative;
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.brand-header h1 span { color: #F5B301; }
-.brand-header p {
-    color: #F5B301;
-    font-style: italic;
-    font-weight: 600;
-    margin: 8px 0 0 0;
-    font-size: 0.95rem;
-    position: relative;
-    z-index: 2;
-}
+        .grad-wrap {
+            position: relative;
+            display: inline-block;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 6px;
+            z-index: 2;
+        }
+        .grad-wrap svg { width: 100%; height: 100%; overflow: visible; }
 
-/* Animated rejoicing graduate */
-.grad-wrap {
-    position: relative;
-    display: inline-block;
-    width: 90px;
-    height: 90px;
-    margin-bottom: 6px;
-    z-index: 2;
-}
-.grad-wrap svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
+        @keyframes rejoice {
+            0%   { transform: translateY(0) rotate(0deg); }
+            25%  { transform: translateY(-10px) rotate(-4deg); }
+            50%  { transform: translateY(0) rotate(0deg); }
+            75%  { transform: translateY(-6px) rotate(4deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        .grad-figure {
+            animation: rejoice 1.6s ease-in-out infinite;
+            transform-origin: 50% 90%;
+        }
 
-/* Jump / rejoice animation */
-@keyframes rejoice {
-    0%   { transform: translateY(0) rotate(0deg); }
-    25%  { transform: translateY(-10px) rotate(-4deg); }
-    50%  { transform: translateY(0) rotate(0deg); }
-    75%  { transform: translateY(-6px) rotate(4deg); }
-    100% { transform: translateY(0) rotate(0deg); }
-}
-.grad-figure {
-    animation: rejoice 1.6s ease-in-out infinite;
-    transform-origin: 50% 90%;
-}
+        @keyframes sparklePop {
+            0%   { opacity: 0; transform: scale(0.3) translateY(0); }
+            40%  { opacity: 1; transform: scale(1.15) translateY(-4px); }
+            100% { opacity: 0; transform: scale(0.4) translateY(-14px); }
+        }
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #F5B301;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #F5B301, 0 0 20px rgba(245, 179, 1, 0.6);
+            animation: sparklePop 2s ease-out infinite;
+            z-index: 1;
+        }
+        .sparkle.s1 { top: 10%; left: 5%;  animation-delay: 0s;   }
+        .sparkle.s2 { top: 20%; right: 5%; animation-delay: 0.4s; width: 8px; height: 8px; }
+        .sparkle.s3 { top: 55%; left: 0%;  animation-delay: 0.8s; width: 6px; height: 6px; }
+        .sparkle.s4 { top: 60%; right: 0%; animation-delay: 1.2s; width: 12px; height: 12px; }
+        .sparkle.s5 { top: 0%;  left: 45%; animation-delay: 0.6s; width: 7px; height: 7px; }
+        .sparkle.s6 { top: 0%;  right: 40%; animation-delay: 1.0s; width: 9px; height: 9px; }
 
-/* Gold sparkles popping around the graduate */
-@keyframes sparklePop {
-    0%   { opacity: 0; transform: scale(0.3) translateY(0); }
-    40%  { opacity: 1; transform: scale(1.15) translateY(-4px); }
-    100% { opacity: 0; transform: scale(0.4) translateY(-14px); }
-}
-.sparkle {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: #F5B301;
-    border-radius: 50%;
-    box-shadow: 0 0 10px #F5B301, 0 0 20px rgba(245, 179, 1, 0.6);
-    animation: sparklePop 2s ease-out infinite;
-    z-index: 1;
-}
-.sparkle.s1 { top: 10%; left: 5%;  animation-delay: 0s;   }
-.sparkle.s2 { top: 20%; right: 5%; animation-delay: 0.4s; width: 8px; height: 8px; }
-.sparkle.s3 { top: 55%; left: 0%;  animation-delay: 0.8s; width: 6px; height: 6px; }
-.sparkle.s4 { top: 60%; right: 0%; animation-delay: 1.2s; width: 12px; height: 12px; }
-.sparkle.s5 { top: 0%;  left: 45%; animation-delay: 0.6s; width: 7px; height: 7px; }
-.sparkle.s6 { top: 0%;  right: 40%; animation-delay: 1.0s; width: 9px; height: 9px; }
+        @keyframes shine {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .brand-header::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.07) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shine 5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
 
-/* Gentle shine sweep across the header */
-@keyframes shine {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(200%); }
-}
-.brand-header::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(
-        120deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.07) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    animation: shine 5s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-}
         .stButton > button {
             background-color: #0B1F4B;
             color: #FFFFFF;
@@ -280,6 +296,16 @@ st.markdown(
             margin: 8px 0 14px 0;
         }
         .info-pill .icon { color: #0B1F4B; }
+
+        .preview-frame {
+            background: #ffffff;
+            border: 1px solid #E5E9F0;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 620px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -291,7 +317,39 @@ st.markdown(
 st.markdown(
     f"""
     <div class="brand-header">
-        <h1>{ICONS['cap'].replace('class="icon"', 'class="icon icon-lg"')}Campus<span>Ease</span> Ezigbo</h1>
+        <div class="sparkle s1"></div>
+        <div class="sparkle s2"></div>
+        <div class="sparkle s3"></div>
+        <div class="sparkle s4"></div>
+        <div class="sparkle s5"></div>
+        <div class="sparkle s6"></div>
+
+        <div class="grad-wrap">
+            <svg viewBox="0 0 100 100" class="grad-figure" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="34" r="9" fill="#F5B301"/>
+                <path d="M46 36 Q50 40 54 36" stroke="#0B1F4B" stroke-width="1.6"
+                      fill="none" stroke-linecap="round"/>
+                <line x1="50" y1="43" x2="50" y2="66"
+                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+                <line x1="50" y1="50" x2="32" y2="36"
+                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+                <line x1="50" y1="50" x2="68" y2="36"
+                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="31" cy="35" r="3" fill="#F5B301"/>
+                <circle cx="69" cy="35" r="3" fill="#F5B301"/>
+                <line x1="50" y1="66" x2="42" y2="84"
+                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+                <line x1="50" y1="66" x2="58" y2="84"
+                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M32 24 L50 15 L68 24 L50 33 Z" fill="#FFFFFF"/>
+                <rect x="47" y="24" width="6" height="4" fill="#FFFFFF"/>
+                <line x1="50" y1="24" x2="50" y2="20"
+                      stroke="#F5B301" stroke-width="1.5"/>
+                <circle cx="50" cy="19" r="2" fill="#F5B301"/>
+            </svg>
+        </div>
+
+        <h1>Campus<span>Ease</span> Ezigbo</h1>
         <p>No Stress. No Delay. We've Got You.</p>
     </div>
     """,
@@ -309,6 +367,10 @@ if "pdf_bytes" not in st.session_state:
     st.session_state.pdf_bytes = None
 if "duplicate_student" not in st.session_state:
     st.session_state.duplicate_student = None
+if "letter_data" not in st.session_state:
+    st.session_state.letter_data = None
+if "html_preview" not in st.session_state:
+    st.session_state.html_preview = None
 
 # ============================================================
 # STEP 1 — SIGN UP
@@ -332,6 +394,7 @@ if st.session_state.step == 1:
 
     st.markdown("**Date of birth:**")
     col1, col2, col3 = st.columns([2, 1, 1])
+
     with col1:
         month_name = st.selectbox(
             "Month",
@@ -339,11 +402,24 @@ if st.session_state.step == 1:
              "July", "August", "September", "October", "November", "December"],
             label_visibility="collapsed",
         )
-    with col2:
-        day = st.selectbox("Day", list(range(1, 32)), label_visibility="collapsed")
     with col3:
         year = st.selectbox(
             "Year", list(range(date.today().year, 1949, -1)),
+            label_visibility="collapsed",
+        )
+
+    # Smart day picker: only shows valid days for the chosen month/year
+    _month_num_for_days = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ].index(month_name) + 1
+
+    _last_day = _days_in_month(year, _month_num_for_days)
+
+    with col2:
+        day = st.selectbox(
+            "Day",
+            list(range(1, _last_day + 1)),
             label_visibility="collapsed",
         )
 
@@ -442,7 +518,8 @@ elif st.session_state.step == 2:
         height=100,
     )
 
-    letter_date = date.today().strftime("%d %B %Y")
+    _today = date.today()
+    letter_date = f"{_ordinal(_today.day)} {_today.strftime('%B %Y')}"
     st.markdown(
         f'<div class="date-caption">{ICONS["calendar"]}Letter date:&nbsp;<strong>{letter_date}</strong>&nbsp;(auto-filled with today\'s date)</div>',
         unsafe_allow_html=True,
@@ -454,7 +531,7 @@ elif st.session_state.step == 2:
             st.session_state.step = 1
             st.rerun()
     with col_b:
-        if st.button("Generate My Letter"):
+        if st.button("Preview Letter"):
             required = [course_name, institution_name, campus_location,
                         parent_name, parent_address]
             if not all(x.strip() for x in required):
@@ -475,26 +552,58 @@ elif st.session_state.step == 2:
 
                 html = render_template("template_001.html", data)
 
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                    tmp_path = tmp.name
+                # Save data + rendered HTML for the preview screen
+                st.session_state.letter_data = data
+                st.session_state.html_preview = html
 
-                html_to_pdf(html, tmp_path)
-
-                with open(tmp_path, "rb") as f:
-                    st.session_state.pdf_bytes = f.read()
-
-                Path(tmp_path).unlink(missing_ok=True)
-
-                Path(tmp_path).unlink(missing_ok=True)
-
+                # Save the letter request to the database
                 create_letter_request(
                     student_id=st.session_state.profile["id"],
                     data=data,
                     template_used="template_001.html",
                 )
 
-                st.session_state.step = 3
+                st.session_state.step = 25   # preview screen
                 st.rerun()
+
+# ============================================================
+# STEP 25 — PREVIEW BEFORE DOWNLOAD
+# ============================================================
+elif st.session_state.step == 25:
+    st.markdown("## Preview Your Letter")
+    st.caption("Review it below. If everything looks right, download it. Otherwise, go back and edit.")
+
+    if st.session_state.html_preview:
+        st.components.v1.html(
+            f"""
+            <div class="preview-frame">
+                {st.session_state.html_preview}
+            </div>
+            """,
+            height=680,
+            scrolling=True,
+        )
+
+    st.markdown("")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("←  Edit Details"):
+            st.session_state.step = 2
+            st.rerun()
+    with col2:
+        if st.button("Download PDF  →"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp_path = tmp.name
+
+            html_to_pdf(st.session_state.html_preview, tmp_path)
+
+            with open(tmp_path, "rb") as f:
+                st.session_state.pdf_bytes = f.read()
+
+            Path(tmp_path).unlink(missing_ok=True)
+
+            st.session_state.step = 3
+            st.rerun()
 
 # ============================================================
 # STEP 3 — DOWNLOAD + LINK
@@ -556,4 +665,64 @@ elif st.session_state.step == 3:
         st.session_state.step = 1
         st.session_state.profile = {}
         st.session_state.pdf_bytes = None
+        st.session_state.letter_data = None
+        st.session_state.html_preview = None
+        st.rerun()
+
+# ============================================================
+# STEP 99 — DUPLICATE FOUND
+# ============================================================
+elif st.session_state.step == 99:
+    existing = st.session_state.duplicate_student or {}
+    st.markdown("## You've already generated a letter")
+    st.warning(
+        f"We found an existing record for **{existing.get('full_name', 'this person')}**. "
+        "Each student can generate one attestation letter to prevent abuse."
+    )
+
+    st.markdown("### Want to generate for a friend?")
+    st.caption("Enter their details below — one letter per person.")
+
+    with st.form("friend_form"):
+        friend_name = st.text_input("Friend's Full Name")
+        friend_phone = st.text_input("Friend's Phone Number")
+        friend_email = st.text_input("Friend's Email")
+        friend_consent = st.checkbox("Friend consents to us storing this data.")
+        submit = st.form_submit_button("Continue")
+
+    if submit:
+        if not (friend_name.strip() and friend_phone.strip() and friend_email.strip()):
+            st.error("Please fill in all fields.")
+        elif not friend_consent:
+            st.error("Please confirm your friend consents.")
+        else:
+            friend_existing = find_student(
+                phone=friend_phone.strip(),
+                email=friend_email.strip().lower(),
+            )
+            if friend_existing:
+                st.error("That friend has also already generated a letter.")
+            else:
+                new_row = create_student(
+                    full_name=friend_name.strip(),
+                    dob_day=1, dob_month=1, dob_year=2000,
+                    phone=friend_phone.strip(),
+                    email=friend_email.strip().lower(),
+                )
+                st.session_state.profile = {
+                    "id": new_row["id"],
+                    "full_name": new_row["full_name"],
+                    "dob_day": new_row["dob_day"],
+                    "dob_month": new_row["dob_month"],
+                    "dob_year": new_row["dob_year"],
+                    "phone": new_row["phone"],
+                    "email": new_row["email"],
+                }
+                st.session_state.duplicate_student = None
+                st.session_state.step = 2
+                st.rerun()
+
+    if st.button("←  Back to Sign Up"):
+        st.session_state.duplicate_student = None
+        st.session_state.step = 1
         st.rerun()
