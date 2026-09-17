@@ -84,7 +84,7 @@ def _days_in_month(year: int, month: int) -> int:
 # ============================================================
 # ADDRESS WRAPPER — auto-breaks long lines, max 4 lines
 # ============================================================
-def _wrap_address(address: str, max_chars: int = 38, max_lines: int = 4) -> str:
+def _wrap_address(address: str, max_chars: int = 24, max_lines: int = 4) -> str:
     """Wrap a parent address into up to max_lines, each up to max_chars.
     Returns HTML with <br> between lines."""
     if not address:
@@ -538,7 +538,7 @@ elif st.session_state.step == 2:
 
     st.markdown("### Parent / Guardian")
     parent_title = st.selectbox("Title", PARENT_TITLES)
-    parent_name = st.text_input("Parent Full Name", placeholder="e.g. Ochiabuto Joseph")
+    parent_name = st.text_input("Parent Full Name", placeholder="e.g. Salako Oluwatosin Daniel")
     parent_address = st.text_area(
         "Parent Address",
         placeholder="12 Main Street,\nUmuahia,\nAbia State.",
