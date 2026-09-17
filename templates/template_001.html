@@ -22,11 +22,8 @@
     .header {
         text-align: right;
         margin-bottom: 24px;
-        max-width: 55%;
+        max-width: 260px;
         margin-left: auto;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: normal;
         line-height: 1.55;
     }
     .header p { margin: 0; }
@@ -34,9 +31,7 @@
     /* ---------- ADDRESSEE (left-aligned registrar block) ---------- */
     .addressee {
         margin-bottom: 24px;
-        max-width: 60%;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
+        max-width: 300px;
         line-height: 1.55;
     }
     .addressee p { margin: 0; }
@@ -77,9 +72,9 @@
 </head>
 <body>
 
-    <!-- PARENT ADDRESS (right side) -->
+    <!-- PARENT ADDRESS (right side, max 4 lines, auto-wrapped) -->
     <div class="header">
-        <p>{{ parent_address | replace('\n', '<br>') | safe }}</p>
+        <p>{{ parent_address_wrapped | safe }}</p>
         <p>{{ letter_date }}</p>
     </div>
 

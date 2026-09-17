@@ -82,6 +82,46 @@ def _days_in_month(year: int, month: int) -> int:
 
 
 # ============================================================
+# ADDRESS WRAPPER — auto-breaks long lines, max 4 lines
+# ============================================================
+def _wrap_address(address: str, max_chars: int = 38, max_lines: int = 4) -> str:
+    """Wrap a parent address into up to max_lines, each up to max_chars.
+    Returns HTML with <br> between lines."""
+    if not address:
+        return ""
+
+    # Split on existing newlines first (respect the user's own breaks)
+    raw_lines = [ln.strip() for ln in address.split("\n") if ln.strip()]
+
+    wrapped = []
+    for line in raw_lines:
+        # If line fits, keep it whole
+        if len(line) <= max_chars:
+            wrapped.append(line)
+        else:
+            # Break it into chunks at word boundaries
+            words = line.split()
+            current = ""
+            for word in words:
+                if not current:
+                    current = word
+                elif len(current) + 1 + len(word) <= max_chars:
+                    current += " " + word
+                else:
+                    wrapped.append(current)
+                    current = word
+            if current:
+                wrapped.append(current)
+
+    # Cap at max_lines; if more, merge the tail into the last line
+    if len(wrapped) > max_lines:
+        tail = " ".join(wrapped[max_lines - 1:])
+        wrapped = wrapped[:max_lines - 1] + [tail]
+
+    return "<br>".join(wrapped)
+
+
+# ============================================================
 # ICONS (inline SVG — Lucide-style, no emojis)
 # ============================================================
 ICONS = {
@@ -534,6 +574,7 @@ elif st.session_state.step == 2:
                     "parent_title": parent_title,
                     "parent_name": parent_name.strip(),
                     "parent_address": parent_address.strip(),
+                    "parent_address_wrapped": _wrap_address(parent_address.strip()),
                     "letter_date": letter_date,
                 }
 
