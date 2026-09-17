@@ -17,11 +17,34 @@
         margin: 0;
         padding: 0;
     }
-    .header { text-align: right; margin-bottom: 22px; }
+
+    /* ---------- HEADER (right-aligned parent address + date) ---------- */
+    .header {
+        text-align: right;
+        margin-bottom: 24px;
+        max-width: 55%;
+        margin-left: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        line-height: 1.55;
+    }
     .header p { margin: 0; }
-    .addressee { margin-bottom: 22px; }
+
+    /* ---------- ADDRESSEE (left-aligned registrar block) ---------- */
+    .addressee {
+        margin-bottom: 24px;
+        max-width: 60%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.55;
+    }
     .addressee p { margin: 0; }
+
+    /* ---------- SALUTATION ---------- */
     .salutation { margin-bottom: 14px; }
+
+    /* ---------- TITLE ---------- */
     h1.title {
         text-align: center;
         font-size: 14pt;
@@ -30,12 +53,17 @@
         letter-spacing: 2px;
         margin: 26px 0;
     }
+
+    /* ---------- BODY ---------- */
     .body p {
         text-align: justify;
         margin: 0 0 12px 0;
     }
+
+    /* ---------- CLOSING & SIGNATURE ---------- */
     .closing { text-align: right; margin-top: 36px; }
     .closing p { margin: 0; }
+
     .signature { text-align: right; margin-top: 55px; }
     .signature-line {
         border-top: 1px solid #000;
@@ -49,15 +77,17 @@
 </head>
 <body>
 
+    <!-- PARENT ADDRESS (right side) -->
     <div class="header">
         <p>{{ parent_address | replace('\n', '<br>') | safe }}</p>
         <p>{{ letter_date }}</p>
     </div>
 
+    <!-- REGISTRAR / INSTITUTION (left side) -->
     <div class="addressee">
         <p>{{ addressee_title }}</p>
         <p>{{ institution_name }}</p>
-        <p>{{ campus_location }}</p>
+        <p>{{ campus_location | replace('\n', '<br>') | safe }}</p>
     </div>
 
     <div class="salutation">
