@@ -615,6 +615,36 @@ elif st.session_state.step == 25:
         "`Abia State.`"
     )
 
+    if st.session_state.html_preview:
+        # Render the template HTML directly inside a sandboxed iframe.
+        # The template is a complete HTML document (has its own <html>, <head>, <style>),
+        # so we pass it as-is without wrapping.
+        st.components.v1.html(
+            st.session_state.html_preview,
+            height=800,
+            scrolling=True,
+        )
+
+    st.markdown("")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("←  Edit Details"):
+            st.session_state.step = 2
+            st.rerun()
+    with col2:
+        if st.button("Download PDF  →"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp_path = tmp.name
+
+            html_to_pdf(st.session_state.html_preview, tmp_path)
+
+            with open(tmp_path, "rb") as f:
+                st.session_state.pdf_bytes = f.read()
+
+            Path(tmp_path).unlink(missing_ok=True)
+
+            st.session_state.step = 3
+            st.rerun()
 # ============================================================
 # STEP 3 — DOWNLOAD + LINK
 # ============================================================
