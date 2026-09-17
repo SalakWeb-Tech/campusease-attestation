@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attestation Letter</title>
+<style>
+    @page {
+        size: A4;
+        margin: 22mm 20mm 22mm 20mm;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.7;
+        color: #000;
+        margin: 0;
+        padding: 0;
+    }
+    .header { text-align: right; margin-bottom: 22px; }
+    .header p { margin: 0; }
+    .addressee { margin-bottom: 22px; }
+    .addressee p { margin: 0; }
+    .salutation { margin-bottom: 14px; }
+    h1.title {
+        text-align: center;
+        font-size: 14pt;
+        font-weight: bold;
+        text-decoration: underline;
+        letter-spacing: 2px;
+        margin: 26px 0;
+    }
+    .body p {
+        text-align: justify;
+        margin: 0 0 12px 0;
+    }
+    .closing { text-align: right; margin-top: 36px; }
+    .closing p { margin: 0; }
+    .signature { text-align: right; margin-top: 55px; }
+    .signature-line {
+        border-top: 1px solid #000;
+        width: 210px;
+        margin-left: auto;
+        margin-bottom: 5px;
+    }
+    .signature p { margin: 0; }
+    .signature .role { font-size: 10pt; font-style: italic; }
+</style>
+</head>
+<body>
+
+    <div class="header">
+        <p>{{ parent_address | replace('\n', '<br>') | safe }}</p>
+        <p>{{ letter_date }}</p>
+    </div>
+
+    <div class="addressee">
+        <p>{{ addressee_title }}</p>
+        <p>{{ institution_name }}</p>
+        <p>{{ campus_location }}</p>
+    </div>
+
+    <div class="salutation">
+        <p>Dear Sir/Madam,</p>
+    </div>
+
+    <h1 class="title">ATTESTATION LETTER</h1>
+
+    <div class="body">
+        <p>
+            I, {{ parent_title }} {{ parent_name }}, respectfully write to attest that
+            <strong>{{ student_name }}</strong> is my {{ relationship_term }} who has gained
+            admission to study <strong>{{ course_name }}</strong> in your reputable institution.
+        </p>
+
+        <p>
+            {{ subject_pronoun }} is of good conduct, hardworking, and an obedient child.
+            {{ subject_pronoun }} will also be dedicated to {{ possessive_pronoun|lower }} studies
+            and will abide by the rules and regulations of the institution.
+        </p>
+
+        <p>
+            I hereby recommend that {{ subject_pronoun|lower }} will be of good behavior all
+            through {{ possessive_pronoun|lower }} stay in this citadel of learning. Please kindly
+            give {{ object_pronoun }} all necessary assistance needed as a student.
+        </p>
+
+        <p>Thank you for your consideration.</p>
+    </div>
+
+    <div class="closing">
+        <p>Yours faithfully,</p>
+    </div>
+
+    <div class="signature">
+        <div class="signature-line"></div>
+        <p><strong>{{ parent_title }} {{ parent_name }}</strong></p>
+        <p class="role">(Parent / Guardian)</p>
+    </div>
+
+</body>
+</html>
