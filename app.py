@@ -314,47 +314,34 @@ st.markdown(
 # ============================================================
 # HEADER
 # ============================================================
-st.markdown(
-    f"""
-    <div class="brand-header">
-        <div class="sparkle s1"></div>
-        <div class="sparkle s2"></div>
-        <div class="sparkle s3"></div>
-        <div class="sparkle s4"></div>
-        <div class="sparkle s5"></div>
-        <div class="sparkle s6"></div>
-
-        <div class="grad-wrap">
-            <svg viewBox="0 0 100 100" class="grad-figure" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="34" r="9" fill="#F5B301"/>
-                <path d="M46 36 Q50 40 54 36" stroke="#0B1F4B" stroke-width="1.6"
-                      fill="none" stroke-linecap="round"/>
-                <line x1="50" y1="43" x2="50" y2="66"
-                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-                <line x1="50" y1="50" x2="32" y2="36"
-                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-                <line x1="50" y1="50" x2="68" y2="36"
-                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-                <circle cx="31" cy="35" r="3" fill="#F5B301"/>
-                <circle cx="69" cy="35" r="3" fill="#F5B301"/>
-                <line x1="50" y1="66" x2="42" y2="84"
-                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-                <line x1="50" y1="66" x2="58" y2="84"
-                      stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M32 24 L50 15 L68 24 L50 33 Z" fill="#FFFFFF"/>
-                <rect x="47" y="24" width="6" height="4" fill="#FFFFFF"/>
-                <line x1="50" y1="24" x2="50" y2="20"
-                      stroke="#F5B301" stroke-width="1.5"/>
-                <circle cx="50" cy="19" r="2" fill="#F5B301"/>
-            </svg>
-        </div>
-
-        <h1>Campus<span>Ease</span> Ezigbo</h1>
-        <p>No Stress. No Delay. We've Got You.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+_header_html = """<div class="brand-header">
+<div class="sparkle s1"></div>
+<div class="sparkle s2"></div>
+<div class="sparkle s3"></div>
+<div class="sparkle s4"></div>
+<div class="sparkle s5"></div>
+<div class="sparkle s6"></div>
+<div class="grad-wrap">
+<svg viewBox="0 0 100 100" class="grad-figure" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="34" r="9" fill="#F5B301"/>
+<path d="M46 36 Q50 40 54 36" stroke="#0B1F4B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<line x1="50" y1="43" x2="50" y2="66" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="50" y1="50" x2="32" y2="36" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="50" y1="50" x2="68" y2="36" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="31" cy="35" r="3" fill="#F5B301"/>
+<circle cx="69" cy="35" r="3" fill="#F5B301"/>
+<line x1="50" y1="66" x2="42" y2="84" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="50" y1="66" x2="58" y2="84" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M32 24 L50 15 L68 24 L50 33 Z" fill="#FFFFFF"/>
+<rect x="47" y="24" width="6" height="4" fill="#FFFFFF"/>
+<line x1="50" y1="24" x2="50" y2="20" stroke="#F5B301" stroke-width="1.5"/>
+<circle cx="50" cy="19" r="2" fill="#F5B301"/>
+</svg>
+</div>
+<h1>Campus<span>Ease</span> Ezigbo</h1>
+<p>No Stress. No Delay. We've Got You.</p>
+</div>"""
+st.markdown(_header_html, unsafe_allow_html=True)
 
 # ============================================================
 # SESSION STATE
