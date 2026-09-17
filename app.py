@@ -599,39 +599,21 @@ elif st.session_state.step == 2:
 # ============================================================
 elif st.session_state.step == 25:
     st.markdown("## Preview Your Letter")
-    st.caption("Review it below. If everything looks right, download it. Otherwise, go back and edit.")
 
-    if st.session_state.html_preview:
-        st.components.v1.html(
-            f"""
-            <div class="preview-frame">
-                {st.session_state.html_preview}
-            </div>
-            """,
-            height=680,
-            scrolling=True,
-        )
+    st.info(
+        "**Please review your home address below.** "
+        "If everything looks right, download it. "
+        "Otherwise, go back and edit."
+    )
 
-    st.markdown("")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("←  Edit Details"):
-            st.session_state.step = 2
-            st.rerun()
-    with col2:
-        if st.button("Download PDF  →"):
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp_path = tmp.name
-
-            html_to_pdf(st.session_state.html_preview, tmp_path)
-
-            with open(tmp_path, "rb") as f:
-                st.session_state.pdf_bytes = f.read()
-
-            Path(tmp_path).unlink(missing_ok=True)
-
-            st.session_state.step = 3
-            st.rerun()
+    st.caption(
+        "Tip: If your address runs too long or wraps oddly, "
+        "click Edit Details and press Enter between each line of the address. "
+        "For example:\n\n"
+        "`12 Main Street,`\n"
+        "`Umuahia,`\n"
+        "`Abia State.`"
+    )
 
 # ============================================================
 # STEP 3 — DOWNLOAD + LINK
