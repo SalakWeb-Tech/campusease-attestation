@@ -181,6 +181,20 @@ st.markdown(
             gap: 6px;
         }
         .brand-header h1 span { color: #F5B301; }
+                .brand-header h1.gradient-title {
+            background: linear-gradient(180deg, #FFFFFF 0%, #FFF4D6 45%, #F5B301 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+        }
+        .brand-header h1.gradient-title span {
+            background: inherit;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         .brand-header p {
             color: #F5B301;
             font-style: italic;
@@ -354,32 +368,26 @@ st.markdown(
 # ============================================================
 # HEADER
 # ============================================================
-_header_html = """<div class="brand-header">
+import base64 as _b64
+
+def _logo_uri():
+    p = Path("assets/logo.png")
+    if not p.exists():
+        return ""
+    return f"data:image/png;base64,{_b64.b64encode(p.read_bytes()).decode('utf-8')}"
+
+_logo = _logo_uri()
+_logo_tag = f'<img src="{_logo}" alt="CampusEase Ezigbo" style="max-height:180px; max-width:180px; display:block; margin: 0 auto 14px auto; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));" />' if _logo else ""
+
+_header_html = f"""<div class="brand-header">
 <div class="sparkle s1"></div>
 <div class="sparkle s2"></div>
 <div class="sparkle s3"></div>
 <div class="sparkle s4"></div>
 <div class="sparkle s5"></div>
 <div class="sparkle s6"></div>
-<div class="grad-wrap">
-<svg viewBox="0 0 100 100" class="grad-figure" xmlns="http://www.w3.org/2000/svg">
-<circle cx="50" cy="34" r="9" fill="#F5B301"/>
-<path d="M46 36 Q50 40 54 36" stroke="#0B1F4B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-<line x1="50" y1="43" x2="50" y2="66" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="32" y2="36" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="68" y2="36" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-<circle cx="31" cy="35" r="3" fill="#F5B301"/>
-<circle cx="69" cy="35" r="3" fill="#F5B301"/>
-<line x1="50" y1="66" x2="42" y2="84" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-<line x1="50" y1="66" x2="58" y2="84" stroke="#F5B301" stroke-width="3.5" stroke-linecap="round"/>
-<path d="M32 24 L50 15 L68 24 L50 33 Z" fill="#FFFFFF"/>
-<rect x="47" y="24" width="6" height="4" fill="#FFFFFF"/>
-<line x1="50" y1="24" x2="50" y2="20" stroke="#F5B301" stroke-width="1.5"/>
-<circle cx="50" cy="19" r="2" fill="#F5B301"/>
-</svg>
-</div>
-<h1>Campus<span>Ease</span> Ezigbo</h1>
-<p>No Stress. No Delay. We've Got You.</p>
+{_logo_tag}
+<p style="margin: 0; color: #F5B301; font-style: italic; font-weight: 600; font-size: 0.95rem; position: relative; z-index: 2;">No Stress. No Delay. We've Got You.</p>
 </div>"""
 st.markdown(_header_html, unsafe_allow_html=True)
 

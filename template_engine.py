@@ -1,6 +1,7 @@
 # template_engine.py
 # Combines a random layout + a random body, and injects student data + pronouns.
 
+import base64
 import os
 import random
 from pathlib import Path
@@ -12,12 +13,21 @@ from letter_bodies import LETTER_BODIES
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 LAYOUTS_DIR = TEMPLATES_DIR / "layouts"
+ASSETS_DIR = Path(__file__).parent / "assets"
 
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
     autoescape=select_autoescape(["html", "xml"]),
 )
 
+def _get_logo_data_uri() -> str:
+    """Read the logo file and return a base64 data URI for embedding in HTML."""
+    logo_path = ASSETS_DIR / "logo.png"
+    if not logo_path.exists():
+        return ""
+    with open(logo_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
 
 def _body_to_html(body_text: str) -> str:
     """Convert a plain-text body (with blank lines between paragraphs)
@@ -42,13 +52,14 @@ def render_letter(data: dict, body_id: int = None, layout_name: str = None) -> t
 
     Returns (html_string, body_id_used, layout_name_used).
     """
-    # 1. Get pronouns for the selected gender
     pronouns = get_pronouns(data["gender"])
     context = {
         **data,
         **pronouns,
         # Bold the student's name wherever {{student_name}} is used in a body
         "student_name": f"<strong>{data['student_name']}</strong>",
+        # Logo embedded as base64 so it works in PDF and Streamlit Cloud
+        "logo_data_uri": _get_logo_data_uri(),
     }
 
     # 2. Pick a body (or use the given one)
