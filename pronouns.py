@@ -5,13 +5,17 @@
 PRONOUNS = {
     "Male": {
         "subject_pronoun": "He",
+        "subject_pronoun_lower": "he",
         "possessive_pronoun": "His",
+        "possessive_pronoun_lower": "his",
         "object_pronoun": "him",
         "relationship_term": "son",
     },
     "Female": {
         "subject_pronoun": "She",
+        "subject_pronoun_lower": "she",
         "possessive_pronoun": "Her",
+        "possessive_pronoun_lower": "her",
         "object_pronoun": "her",
         "relationship_term": "daughter",
     },
@@ -30,7 +34,7 @@ if __name__ == "__main__":
     for g in ("Male", "Female"):
         p = get_pronouns(g)
         print(f"\n--- {g} ---")
-        print(f"{p['subject_pronoun']} is of good conduct.")
-        print(f"{p['subject_pronoun']} will be dedicated to {p['possessive_pronoun'].lower()} studies.")
-        print(f"Please kindly give {p['object_pronoun']} all necessary assistance.")
-        print(f"Relationship: my {p['relationship_term']}")
+        print(f"{p['subject_pronoun']} / {p['subject_pronoun_lower']}")
+        print(f"{p['possessive_pronoun']} / {p['possessive_pronoun_lower']}")
+        print(f"{p['object_pronoun']}")
+        print(f"my {p['relationship_term']}")
