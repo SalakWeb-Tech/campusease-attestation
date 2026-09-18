@@ -8,7 +8,7 @@ from datetime import date, timedelta
 
 import streamlit as st
 
-from template_engine import render_template
+from template_engine import render_letter
 from pdf_generator import html_to_pdf
 from database import find_student, create_student, create_letter_request
 
@@ -398,6 +398,10 @@ if "letter_data" not in st.session_state:
     st.session_state.letter_data = None
 if "html_preview" not in st.session_state:
     st.session_state.html_preview = None
+if "letter_body_id" not in st.session_state:
+    st.session_state.letter_body_id = None
+if "letter_layout_name" not in st.session_state:
+    st.session_state.letter_layout_name = None
 
 # ============================================================
 # STEP 1 — SIGN UP
@@ -546,7 +550,7 @@ elif st.session_state.step == 2:
     )
 
     _today = date.today()
-    letter_date = f"{_ordinal(_today.day)} {_today.strftime('%B %Y')}"
+    letter_date = f"{_ordinal(_today.day)} {_today.strftime('%B, %Y')}"
     st.markdown(
         f'<div class="date-caption">{ICONS["calendar"]}Letter date:&nbsp;<strong>{letter_date}</strong>&nbsp;(auto-filled with today\'s date)</div>',
         unsafe_allow_html=True,
@@ -578,7 +582,18 @@ elif st.session_state.step == 2:
                     "letter_date": letter_date,
                 }
 
-                html = render_template("template_001.html", data)
+                 # On first preview, pick random body + layout.
+                # On subsequent previews (after Edit Details), reuse the same ones.
+                if st.session_state.get("letter_body_id") is None:
+                    html, body_id, layout_name = render_letter(data)
+                    st.session_state.letter_body_id = body_id
+                    st.session_state.letter_layout_name = layout_name
+                else:
+                    html, _, _ = render_letter(
+                        data,
+                        body_id=st.session_state.letter_body_id,
+                        layout_name=st.session_state.letter_layout_name,
+                    )
 
                 # Save data + rendered HTML for the preview screen
                 st.session_state.letter_data = data

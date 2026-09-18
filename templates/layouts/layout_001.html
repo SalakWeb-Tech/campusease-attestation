@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <title>Attestation Letter</title>
 <style>
-    @page {
-        size: A4;
-        margin: 22mm 20mm 22mm 20mm;
-    }
+    @page { size: A4; margin: 22mm 20mm 22mm 20mm; }
     * { box-sizing: border-box; }
     body {
         font-family: "Times New Roman", Times, serif;
@@ -17,8 +14,6 @@
         margin: 0;
         padding: 0;
     }
-
-    /* ---------- HEADER (right-aligned parent address + date) ---------- */
     .header {
         text-align: right;
         margin-bottom: 24px;
@@ -27,19 +22,13 @@
         line-height: 1.55;
     }
     .header p { margin: 0; }
-
-    /* ---------- ADDRESSEE (left-aligned registrar block) ---------- */
     .addressee {
         margin-bottom: 24px;
         max-width: 300px;
         line-height: 1.55;
     }
     .addressee p { margin: 0; }
-
-    /* ---------- SALUTATION ---------- */
     .salutation { margin-bottom: 14px; }
-
-    /* ---------- TITLE ---------- */
     h1.title {
         text-align: center;
         font-size: 14pt;
@@ -48,17 +37,12 @@
         letter-spacing: 2px;
         margin: 26px 0;
     }
-
-    /* ---------- BODY ---------- */
     .body p {
         text-align: justify;
         margin: 0 0 12px 0;
     }
-
-    /* ---------- CLOSING & SIGNATURE ---------- */
     .closing { text-align: right; margin-top: 36px; }
     .closing p { margin: 0; }
-
     .signature { text-align: right; margin-top: 55px; }
     .signature-line {
         border-top: 1px solid #000;
@@ -72,13 +56,11 @@
 </head>
 <body>
 
-    <!-- PARENT ADDRESS (right side, max 4 lines, auto-wrapped) -->
     <div class="header">
         <p>{{ parent_address_wrapped | safe }}</p>
         <p>{{ letter_date }}</p>
     </div>
 
-    <!-- REGISTRAR / INSTITUTION (left side) -->
     <div class="addressee">
         <p>{{ addressee_title }}</p>
         <p>{{ institution_name }}</p>
@@ -92,25 +74,7 @@
     <h1 class="title">ATTESTATION LETTER</h1>
 
     <div class="body">
-        <p>
-            I, {{ parent_title }} {{ parent_name }}, respectfully write to attest that
-            <strong>{{ student_name }}</strong> is my {{ relationship_term }} who has gained
-            admission to study <strong>{{ course_name }}</strong> in your reputable institution.
-        </p>
-
-        <p>
-            {{ subject_pronoun }} is of good conduct, hardworking, and an obedient child.
-            {{ subject_pronoun }} will also be dedicated to {{ possessive_pronoun|lower }} studies
-            and will abide by the rules and regulations of the institution.
-        </p>
-
-        <p>
-            I hereby recommend that {{ subject_pronoun|lower }} will be of good behavior all
-            through {{ possessive_pronoun|lower }} stay in this citadel of learning. Please kindly
-            give {{ object_pronoun }} all necessary assistance needed as a student.
-        </p>
-
-        <p>Thank you for your consideration.</p>
+        {{ body_content | safe }}
     </div>
 
     <div class="closing">
