@@ -1,5 +1,6 @@
 # template_engine.py
 # Combines a random layout + a random body, and injects student data + pronouns.
+# Bodies tagged with "requires" only appear when the parent's title matches.
 
 import base64
 import os
@@ -20,8 +21,37 @@ env = Environment(
     autoescape=select_autoescape(["html", "xml"]),
 )
 
+CHRISTIAN_TITLES = {
+    "Pastor", "Rev.", "Rev. Fr.", "Very Rev.", "Ven.",
+    "Evang.", "Apostle", "Bishop", "Prophet",
+}
+
+MUSLIM_TITLES = {
+    "Imam", "Alhaji", "Hajia",
+}
+
+
+def _body_to_html(body_text: str) -> str:
+    paragraphs = [p.strip() for p in body_text.strip().split("\n\n") if p.strip()]
+    return "\n".join(f"<p>{p}</p>" for p in paragraphs)
+
+
+def _pick_layout_name() -> str:
+    files = sorted([f for f in os.listdir(LAYOUTS_DIR) if f.endswith(".html")])
+    if not files:
+        raise RuntimeError("No layouts found in templates/layouts/")
+    return random.choice(files)
+
+
+def _eligible_bodies(parent_title: str) -> list:
+    if parent_title in CHRISTIAN_TITLES:
+        return [b for b in LETTER_BODIES if b.get("requires") in (None, "christian")]
+    if parent_title in MUSLIM_TITLES:
+        return [b for b in LETTER_BODIES if b.get("requires") in (None, "muslim")]
+    return [b for b in LETTER_BODIES if b.get("requires") is None]
+
+
 def _get_logo_data_uri() -> str:
-    """Read the logo file and return a base64 data URI for embedding in HTML."""
     logo_path = ASSETS_DIR / "logo.png"
     if not logo_path.exists():
         return ""
@@ -29,60 +59,33 @@ def _get_logo_data_uri() -> str:
         encoded = base64.b64encode(f.read()).decode("utf-8")
     return f"data:image/png;base64,{encoded}"
 
-def _body_to_html(body_text: str) -> str:
-    """Convert a plain-text body (with blank lines between paragraphs)
-    into HTML paragraphs."""
-    paragraphs = [p.strip() for p in body_text.strip().split("\n\n") if p.strip()]
-    return "\n".join(f"<p>{p}</p>" for p in paragraphs)
-
-
-def _pick_layout_name() -> str:
-    """Return a random layout filename."""
-    files = sorted([f for f in os.listdir(LAYOUTS_DIR) if f.endswith(".html")])
-    if not files:
-        raise RuntimeError("No layouts found in templates/layouts/")
-    return random.choice(files)
-
 
 def render_letter(data: dict, body_id: int = None, layout_name: str = None) -> tuple:
-    """Render a full letter by combining a random body + a random layout.
-
-    If body_id and layout_name are given, uses them (for consistency across previews).
-    Otherwise, picks randomly.
-
-    Returns (html_string, body_id_used, layout_name_used).
-    """
     pronouns = get_pronouns(data["gender"])
     context = {
         **data,
         **pronouns,
-        # Bold the student's name wherever {{student_name}} is used in a body
         "student_name": f"<strong>{data['student_name']}</strong>",
-        # Logo embedded as base64 so it works in PDF and Streamlit Cloud
         "logo_data_uri": _get_logo_data_uri(),
     }
 
-    # 2. Pick a body (or use the given one)
-    if body_id is None:
-        chosen = random.choice(LETTER_BODIES)
+    eligible = _eligible_bodies(data.get("parent_title", ""))
+
+    if body_id is not None:
+        chosen = next((b for b in eligible if b["id"] == body_id), None)
+        if chosen is None:
+            chosen = random.choice(eligible)
     else:
-        chosen = next((b for b in LETTER_BODIES if b["id"] == body_id), LETTER_BODIES[0])
+        chosen = random.choice(eligible)
 
     body_text = chosen["body"]
-
-    # 3. Render the body text with Jinja (pronouns + student data)
     body_rendered = Template(body_text).render(**context)
-
-    # 4. Convert to HTML paragraphs
     body_html = _body_to_html(body_rendered)
 
-    # 5. Pick a layout (or use the given one)
     if layout_name is None:
         layout_name = _pick_layout_name()
 
     layout = env.get_template(f"layouts/{layout_name}")
-
-    # 6. Render the layout with body_content and all context
     html = layout.render(**context, body_content=body_html)
 
     return html, chosen["id"], layout_name
