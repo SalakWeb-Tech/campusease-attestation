@@ -676,7 +676,12 @@ elif st.session_state.step == 3:
         f'## {ICONS["check"].replace("icon", "icon icon-lg")}Your Attestation Letter is Ready',
         unsafe_allow_html=True,
     )
-    st.caption("Download it, print it, and get your parent/guardian to sign it.")
+
+    st.warning(
+        "**Important:** Download the PDF, print it, and have your parent or guardian "
+        "**sign above the signature line** before you submit it to your institution. "
+        "An unsigned letter is not valid."
+    )
 
     if st.session_state.pdf_bytes:
         st.download_button(
@@ -687,6 +692,43 @@ elif st.session_state.step == 3:
         )
 
     st.markdown("---")
+
+    # ---------- WHATSAPP CHANNEL INVITE ----------
+    st.markdown(
+        """
+        <div style="
+            background: linear-gradient(135deg, #0B1F4B 0%, #16336b 100%);
+            border-radius: 12px;
+            padding: 22px 24px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #F5B301;
+        ">
+            <h3 style="color: #F5B301; margin: 0 0 8px 0; font-size: 1.2rem;">
+                Stay Connected
+            </h3>
+            <p style="color: #FFFFFF; margin: 6px 0 16px 0; font-size: 0.95rem;">
+                Follow our WhatsApp channel for admission tips, new tools,
+                and updates from CampusEase Ezigbo.
+            </p>
+            <a href="https://whatsapp.com/channel/0029VbDkig1FcowDr9yhaO3h" target="_blank" style="
+                display: inline-block;
+                background: #F5B301;
+                color: #0B1F4B;
+                padding: 12px 28px;
+                border-radius: 8px;
+                font-weight: 700;
+                text-decoration: none;
+                font-size: 1rem;
+            ">
+                Follow us on WhatsApp
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ---------- CONNECT WITH US ----------
     st.markdown("### Connect with us")
 
     st.markdown(
@@ -694,8 +736,8 @@ elif st.session_state.step == 3:
         <div class="sig-card">
             <h4>Salako Oluwatosin Daniel</h4>
             <p><strong>&nbsp;Founder, CampusEase Ezigbo</strong></p>
-            <p>{ICONS['phone']}08164961572, 08144832008</p>
-            <p>{ICONS['mail']}daniel@campusease.ng</p>
+            <p>{ICONS['phone']}08164961572</p>
+            <p>{ICONS['mail']}salakwebtech@gmail.com</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -708,7 +750,7 @@ elif st.session_state.step == 3:
             <p><strong>&nbsp;Trusted Student Services</strong></p>
             <p>{ICONS['cap']}Clearance &nbsp;•&nbsp; Payments &nbsp;•&nbsp; Registration</p>
             <p>{ICONS['chart']}Project &amp; Data Analysis</p>
-            <p>{ICONS['chat']}WhatsApp: 08164961572, 08144832008</p>
+            <p>{ICONS['chat']}WhatsApp: 08144832008</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -717,7 +759,7 @@ elif st.session_state.step == 3:
     st.markdown(
         f"""
         <div class="brand-footer">
-            <p>{ICONS['arrow-right']}<a href="{CAMPUSEASE_WHATSAPP}" target="_blank">Chat with us on WhatsApp</a></p>
+            <p>{ICONS['arrow_right'] if ICONS.get('arrow_right') else ICONS['arrow-right']}<a href="{CAMPUSEASE_WHATSAPP}" target="_blank">Chat with us on WhatsApp</a></p>
             <p class="tagline">No Stress. No Delay. We've Got You.</p>
         </div>
         """,
