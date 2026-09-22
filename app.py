@@ -3,10 +3,13 @@
 # Phase 1: Signup → Letter Details → Preview → Download → Link
 
 import tempfile
+import time
 from pathlib import Path
 from datetime import date, timedelta
 
 import streamlit as st
+
+_startup = time.time()
 
 from template_engine import render_letter
 from pdf_generator import html_to_pdf
@@ -831,3 +834,7 @@ elif st.session_state.step == 99:
         st.session_state.duplicate_student = None
         st.session_state.step = 1
         st.rerun()
+
+        
+# --- Load time indicator (temporary, remove after testing) ---
+st.caption(f"⏱️ Load time: {time.time() - _startup:.2f}s")
