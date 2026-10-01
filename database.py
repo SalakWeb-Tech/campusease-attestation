@@ -37,16 +37,18 @@ def find_student(phone: str = None, email: str = None):
     return result
 
 
-def create_student(full_name, dob_day, dob_month, dob_year, phone, email):
-    """Insert a new student and return the row (with id)."""
+def create_student(full_name, dob_day, dob_month, dob_year, phone, email=None):
+    """Insert a new student and return the row (with id).
+    Email is optional — it's captured later at the download step."""
     payload = {
         "full_name": full_name,
         "dob_day": dob_day,
         "dob_month": dob_month,
         "dob_year": dob_year,
         "phone": phone,
-        "email": email,
     }
+    if email:
+        payload["email"] = email
     r = supabase.table("students").insert(payload).execute()
     return r.data[0]
 
@@ -64,7 +66,56 @@ def create_letter_request(student_id, data: dict, template_used: str):
         "parent_name": data["parent_name"],
         "parent_address": data["parent_address"],
         "letter_date": data["letter_date"],
+        "attester_type": data.get("attester_type"),
+        "attester_label": data.get("attester_label"),
         "template_used": template_used,
     }
     r = supabase.table("letter_requests").insert(payload).execute()
     return r.data[0]
+
+
+def get_latest_letter_request(student_id: str):
+    """Return the most recent letter request for a student, or None."""
+    try:
+        # Try sorting by created_at first
+        r = (
+            supabase.table("letter_requests")
+            .select("*")
+            .eq("student_id", student_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if r.data:
+            return r.data[0]
+    except Exception:
+        pass
+
+    # Fallback: no created_at column, just get the latest inserted
+    try:
+        r = (
+            supabase.table("letter_requests")
+            .select("*")
+            .eq("student_id", student_id)
+            .limit(1)
+            .execute()
+        )
+        return r.data[0] if r.data else None
+    except Exception:
+        return None
+
+def find_download_by_email(email: str):
+    """Return the download row if this email has already downloaded, else None."""
+    try:
+        r = supabase.table("downloads").select("*").eq("email", email.lower()).limit(1).execute()
+        return r.data[0] if r.data else None
+    except Exception:
+        return None
+
+def check_has_downloaded(student_id: str) -> bool:
+    """True if this student_id already has a download record."""
+    try:
+        r = supabase.table("downloads").select("id").eq("student_id", student_id).limit(1).execute()
+        return bool(r.data)
+    except Exception:
+        return False
