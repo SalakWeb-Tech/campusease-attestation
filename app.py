@@ -1119,30 +1119,5 @@ elif st.session_state.step == 99:
 
 
 
-def check_has_downloaded(student_id: str) -> bool:
-    """True if this student_id already has a download record.
-    Used to decide: resume their flow, or block them."""
-    try:
-        r = supabase.table("downloads").select("id").eq("student_id", student_id).limit(1).execute()
-        return bool(r.data)
-    except Exception:
-        return False
-
-
-def get_latest_letter_request(student_id: str):
-    """Return the most recent letter request for a student, or None."""
-    try:
-        r = (
-            supabase.table("letter_requests")
-            .select("*")
-            .eq("student_id", student_id)
-            .order("created_at", desc=True)
-            .limit(1)
-            .execute()
-        )
-        return r.data[0] if r.data else None
-    except Exception:
-        return None
-
 # --- Load time indicator ---
 st.caption(f"⏱️ Load time: {time.time() - _startup:.2f}s")
