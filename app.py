@@ -332,7 +332,7 @@ if st.query_params.get("admin") == "1":
 
     # ---------- LOGIN ----------
     if not st.session_state.get("admin_logged_in", False):
-        st.markdown("## 🔐 Admin Access")
+        st.markdown("## Admin Access")
         with st.form("admin_login"):
             _login_email = st.text_input("Admin Email")
             _login_pw = st.text_input("Password", type="password")
@@ -533,7 +533,7 @@ if st.session_state.step == 1:
         "attestation letter and future updates (e.g. birthday wishes)."
     )
 
-    st.caption("📧 Your email will be requested later, when you're ready to download.")
+    st.caption("Your email will be requested later, when you're ready to download.")
 
     if st.button("Next  →"):
         if not full_name.strip():
@@ -709,7 +709,7 @@ elif st.session_state.step == 2:
             st.rerun()
     with col_b:
         if st.button("Preview Letter", key="preview_letter_btn"):
-            _missing = []
+             _missing = []
             if not course_name.strip():
                 _missing.append("Course / Department")
             if not institution_name.strip():
@@ -723,6 +723,9 @@ elif st.session_state.step == 2:
 
             if _missing:
                 st.error("Please fill in: " + ", ".join(_missing))
+            else:
+                # ... rest of preview code
+            else:
                 data = {
                     "student_name": st.session_state.profile["full_name"],
                     "gender": gender,
