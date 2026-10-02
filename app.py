@@ -23,13 +23,40 @@ from email_sender import generate_and_send_code, verify_code
 # ============================================================
 # CONFIG
 # ============================================================
+
+st.markdown(
+    """
+    <script>
+        window.parent.document.querySelector('section.main').scrollTo(0, 0);
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.set_page_config(
     page_title="Attestation Letter — CampusEase Ezigbo",
     page_icon="C",
     layout="centered",
 )
 
+st._config.set_option("theme.base", "light")
+
 CAMPUSEASE_WHATSAPP = "https://wa.me/2348164961572"
+# Force scroll-to-top on every page render (mobile-friendly)
+st.markdown(
+    """
+    <style>
+        [data-testid="stAppViewContainer"] > section:first-child {
+            scroll-behavior: auto !important;
+        }
+    </style>
+    <script>
+        const main = window.parent.document.querySelector('section.main');
+        if (main) main.scrollTo({ top: 0, behavior: 'instant' });
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ============================================================
 # INSTITUTIONS
@@ -147,12 +174,64 @@ ICONS = {
 }
 
 # ============================================================
+# SCROLL HELPER — force scroll-to-top on mobile
+# ============================================================
+import streamlit.components.v1 as components
+
+def scroll_to_top():
+    """Scroll the main content area back to the top.
+    Called at the start of each step to prevent the mobile issue
+    where Streamlit keeps the previous scroll position."""
+    components.html(
+        """
+        <script>
+            (function() {
+                try {
+                    var doc = window.parent.document;
+                    var main = doc.querySelector('section.main')
+                            || doc.querySelector('[data-testid="stMain"]')
+                            || doc.querySelector('[data-testid="stAppViewContainer"]');
+                    if (main) {
+                        main.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                        main.scrollTop = 0;
+                    }
+                    if (window.parent) {
+                        window.parent.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    }
+                } catch (e) {}
+            })();
+        </script>
+        """,
+        height=0,
+    )
+
+
+# ============================================================
 # STYLING
 # ============================================================
 st.markdown(
     """
     <style>
-        .stApp { background-color: #ffffff; }
+        /* ===== FORCE LIGHT MODE — overrides dark theme ===== */
+        html, body, .stApp, [data-testid="stAppViewContainer"] {
+            background-color: #FFFFFF !important;
+            color: #1A1A1A !important;
+        }
+        [data-testid="stHeader"], [data-testid="stToolbar"] {
+            background-color: #FFFFFF !important;
+        }
+        input, textarea, select,
+        [data-baseweb="input"],
+        [data-baseweb="textarea"],
+        [data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            color: #1A1A1A !important;
+            border-color: #D1D5DB !important;
+        }
+        [data-testid="stAlert"] {
+            background-color: #EEF4FF !important;
+            color: #0B1F4B !important;
+        }
         h1, h2, h3 { color: #0B1F4B !important; }
         .icon { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-right: 6px; stroke: currentColor; fill: none; }
         .icon-lg { width: 22px; height: 22px; vertical-align: -5px; margin-right: 8px; }
@@ -412,6 +491,7 @@ if st.query_params.get("admin") == "1":
 # STEP 1 — SIGN UP (no email)
 # ============================================================
 if st.session_state.step == 1:
+    scroll_to_top()
     st.markdown("## Sign Up")
     st.caption("Create your profile to generate your free attestation letter.")
 
@@ -470,28 +550,10 @@ if st.session_state.step == 1:
             phone_clean = phone.strip()
 
             existing = find_student(phone=phone_clean)
-
             if existing:
-                # Phone exists, but check whether this person actually completed a download.
-                if check_has_downloaded(existing["id"]):
-                    # Completed before → show duplicate/re-issue/friend options.
-                    st.session_state.duplicate_student = existing
-                    st.session_state.step = 99
-                    st.rerun()
-                else:
-                    # Started before but never downloaded → allow them to continue.
-                    st.session_state.profile = {
-                        "id": existing["id"],
-                        "full_name": existing["full_name"],
-                        "dob_day": existing["dob_day"],
-                        "dob_month": existing["dob_month"],
-                        "dob_year": existing["dob_year"],
-                        "phone": existing["phone"],
-                    }
-                    st.session_state.duplicate_student = None
-                    st.session_state.step = 2
-                    st.rerun()
-
+                st.session_state.duplicate_student = existing
+                st.session_state.step = 99
+                st.rerun()
             else:
                 new_row = create_student(
                     full_name=full_name.strip(),
@@ -515,6 +577,10 @@ if st.session_state.step == 1:
 # STEP 2 — LETTER DETAILS
 # ============================================================
 elif st.session_state.step == 2:
+    st.markdown('<div id="top"></div>', unsafe_allow_html=True)
+
+elif st.session_state.step == 2:
+    scroll_to_top()
     st.markdown("## Letter Details")
     st.caption(f"Signed in as **{st.session_state.profile['full_name']}**")
 
@@ -643,10 +709,20 @@ elif st.session_state.step == 2:
             st.rerun()
     with col_b:
         if st.button("Preview Letter", key="preview_letter_btn"):
-            required = [course_name, institution_name, campus_location, parent_name, parent_address]
-            if not all(x.strip() for x in required):
-                st.error("Please fill in all fields.")
-            else:
+            _missing = []
+            if not course_name.strip():
+                _missing.append("Course / Department")
+            if not institution_name.strip():
+                _missing.append("Institution Name")
+            if not campus_location.strip():
+                _missing.append("Institution Address")
+            if not parent_name.strip():
+                _missing.append("Attester's Full Name")
+            if not parent_address.strip():
+                _missing.append("Attester's Address")
+
+            if _missing:
+                st.error("Please fill in: " + ", ".join(_missing))
                 data = {
                     "student_name": st.session_state.profile["full_name"],
                     "gender": gender,
@@ -702,6 +778,7 @@ elif st.session_state.step == 2:
 # STEP 25 — PREVIEW (1 or 2 versions, user picks)
 # ============================================================
 elif st.session_state.step == 25:
+    scroll_to_top()
     st.markdown("## Preview Your Letter")
 
     versions = st.session_state.preview_versions
@@ -785,6 +862,7 @@ elif st.session_state.step == 25:
 # STEP 26 — EMAIL + VERIFICATION CODE
 # ============================================================
 elif st.session_state.step == 26:
+    scroll_to_top()
     st.markdown("## One Last Step")
     st.caption("Enter your email to receive a verification code, then download your letter.")
 
@@ -846,124 +924,6 @@ elif st.session_state.step == 26:
                         st.rerun()
                     else:
                         st.error(result["error"])
-
-
-
-# ============================================================
-# STEP 100 - LOST FILE / RE-ISSUE REQUEST
-# ============================================================
-elif st.session_state.step == 100:
-
-    REISSUE_FEE = "500"
-    REISSUE_ACCOUNT = "8129632135"
-    REISSUE_BANK = "Moniepoint"
-    REISSUE_NAME = "Salako Oluwatosin Daniel"
-    ADMIN_WHATSAPP = "2348144832008"
-
-    st.markdown("## Request a Re-issue")
-    st.caption("You have already generated a letter before. If you lost it, we can re-issue it for a small fee.")
-
-    certified = st.radio(
-        "Do you remember the details you used before?",
-        ["Yes - I remember my details", "No - I don't remember"],
-        key="lost_certified_radio",
-    )
-
-    st.markdown("---")
-
-    _def_name = st.session_state.get("lost_name", "") or ""
-    _def_phone = st.session_state.get("lost_phone", "") or ""
-
-    if certified.startswith("Yes"):
-        st.markdown("### Your details")
-        st.caption("Just the basics - we already have the rest on file.")
-        lost_name = st.text_input("Full Name", value=_def_name, key="lost_short_name")
-        lost_phone = st.text_input("Phone Number", value=_def_phone, key="lost_short_phone")
-        lost_email = st.text_input("Your Email", placeholder="e.g. myemail@gmail.com", key="lost_short_email")
-        wa_details = "*Name:* " + lost_name.strip() + chr(10) + "*Phone:* " + lost_phone.strip() + chr(10) + "*Email:* " + lost_email.strip().lower() + chr(10)
-        _can_forward = bool(lost_name.strip() and lost_phone.strip() and lost_email.strip())
-    else:
-        st.markdown("### Fill in your details again")
-        st.caption("We will use this to regenerate your letter exactly how you had it.")
-        lost_name = st.text_input("Full Name", value=_def_name, key="lost_full_name")
-        lost_phone = st.text_input("Phone Number", value=_def_phone, key="lost_full_phone")
-        lost_email = st.text_input("Your Email", placeholder="e.g. myemail@gmail.com", key="lost_full_email")
-        lost_gender = st.radio("Gender", ["Male", "Female"], horizontal=True, key="lost_gender_radio")
-        lost_course = st.text_input("Course / Department", placeholder="e.g. Computer Science", key="lost_course_input")
-
-        st.markdown("**Institution**")
-        lost_inst_choice = st.selectbox("Select your institution", list(INSTITUTIONS.keys()), key="lost_inst_selectbox")
-        if INSTITUTIONS[lost_inst_choice] is None:
-            lost_inst_name = st.text_input("Institution Name", placeholder="e.g. Nnamdi Azikiwe University,", key="lost_inst_name_input")
-            lost_inst_loc = st.text_area("Institution Address", placeholder="P.M.B. 5025, Awka", height=80, key="lost_inst_loc_textarea")
-        else:
-            _d = INSTITUTIONS[lost_inst_choice]
-            lost_inst_name = _d["institution_name"]
-            lost_inst_loc = _d["campus_location"]
-
-        st.markdown("**Who was signing your letter?**")
-        lost_attester = st.selectbox("Attester Type", ATTESTER_TYPES, key="lost_attester_selectbox")
-        _lost_title_opts = ATTESTER_TITLES[lost_attester]
-        lost_attester_title = st.selectbox("Attester Title", _lost_title_opts, key="lost_attester_title_selectbox")
-        lost_attester_name = st.text_input("Attester Full Name", placeholder="The person who was signing for you", key="lost_attester_name_input")
-        lost_attester_addr = st.text_area("Attester Address", placeholder="12 Main Street, Umuahia", height=80, key="lost_attester_addr_textarea")
-
-        wa_details = (
-            "*Name:* " + lost_name.strip() + chr(10) +
-            "*Phone:* " + lost_phone.strip() + chr(10) +
-            "*Email:* " + lost_email.strip().lower() + chr(10) +
-            "*Gender:* " + lost_gender + chr(10) +
-            "*Course:* " + lost_course.strip() + chr(10) +
-            "*Institution:* " + lost_inst_name.strip() + chr(10) +
-            "*Campus:* " + lost_inst_loc.strip() + chr(10) +
-            "*Attester Type:* " + lost_attester + chr(10) +
-            "*Attester Title:* " + lost_attester_title + chr(10) +
-            "*Attester Name:* " + lost_attester_name.strip() + chr(10) +
-            "*Attester Address:* " + lost_attester_addr.strip() + chr(10)
-        )
-        _can_forward = all([
-            lost_name.strip(), lost_phone.strip(), lost_email.strip(),
-            lost_course.strip(), lost_inst_name.strip(),
-            lost_attester_name.strip(), lost_attester_addr.strip(),
-        ])
-
-    st.markdown("---")
-    st.markdown("### Payment")
-    st.markdown(
-        "<div style='background:#FFF8E1;border-left:4px solid #F5B301;padding:18px 22px;border-radius:8px;margin:12px 0;'>"
-        "<p style='margin:0 0 12px 0;color:#0B1F4B;font-weight:700;font-size:1.05rem;'>Transfer N500 to:</p>"
-        "<p style='margin:4px 0;color:#333;'><strong>Account Number:</strong> " + REISSUE_ACCOUNT + "</p>"
-        "<p style='margin:4px 0;color:#333;'><strong>Bank:</strong> " + REISSUE_BANK + "</p>"
-        "<p style='margin:4px 0;color:#333;'><strong>Account Name:</strong> " + REISSUE_NAME + "</p>"
-        "<p style='margin:4px 0;color:#333;'><strong>Amount:</strong> N" + REISSUE_FEE + "</p>"
-        "<p style='margin:12px 0 0 0;color:#444;font-size:0.88rem;font-style:italic;'>After payment, forward the message below to our WhatsApp.</p>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("### Forward to WhatsApp")
-    _wa_message = (
-        "*LOST LETTER - RE-ISSUE REQUEST*" + chr(10) + chr(10) +
-        wa_details + chr(10) +
-        "_I confirm I have paid N" + REISSUE_FEE + " to your " + REISSUE_BANK + " account._" + chr(10) + chr(10) +
-        "_I will send the payment receipt in this chat._"
-    )
-    st.caption("This is what will be sent. Fill the form above first.")
-    st.code(_wa_message, language=None)
-
-    _wa_url = "https://wa.me/" + ADMIN_WHATSAPP + "?text=" + urllib.parse.quote(_wa_message)
-
-    if _can_forward:
-        st.link_button("Forward to WhatsApp", _wa_url, use_container_width=True)
-        st.caption("Tap the button above - WhatsApp will open with the message ready to send.")
-    else:
-        st.button("Forward to WhatsApp", disabled=True, use_container_width=True)
-        st.caption("Fill in all required fields above to enable the forward button.")
-
-    st.markdown("")
-    if st.button("Back", key="lost_back_btn"):
-        st.session_state.step = 99
-        st.rerun()
 
 # ============================================================
 # STEP 3 — DOWNLOAD + LINK
@@ -1060,6 +1020,7 @@ elif st.session_state.step == 3:
 # STEP 99 — DUPLICATE FOUND
 # ============================================================
 elif st.session_state.step == 99:
+    scroll_to_top()
     existing = st.session_state.duplicate_student or {}
     st.markdown("## You've already generated a letter")
     st.warning(
@@ -1118,6 +1079,31 @@ elif st.session_state.step == 99:
         st.rerun()
 
 
+
+def check_has_downloaded(student_id: str) -> bool:
+    """True if this student_id already has a download record.
+    Used to decide: resume their flow, or block them."""
+    try:
+        r = supabase.table("downloads").select("id").eq("student_id", student_id).limit(1).execute()
+        return bool(r.data)
+    except Exception:
+        return False
+
+
+def get_latest_letter_request(student_id: str):
+    """Return the most recent letter request for a student, or None."""
+    try:
+        r = (
+            supabase.table("letter_requests")
+            .select("*")
+            .eq("student_id", student_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        return r.data[0] if r.data else None
+    except Exception:
+        return None
 
 # --- Load time indicator ---
 st.caption(f"⏱️ Load time: {time.time() - _startup:.2f}s")
