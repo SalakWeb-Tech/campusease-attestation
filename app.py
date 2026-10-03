@@ -593,8 +593,6 @@ if st.session_state.step == 1:
 # ============================================================
 # STEP 2 — LETTER DETAILS
 # ============================================================
-elif st.session_state.step == 2:
-    st.markdown('<div id="top"></div>', unsafe_allow_html=True)
 
 elif st.session_state.step == 2:
     scroll_to_top()
@@ -602,6 +600,26 @@ elif st.session_state.step == 2:
     st.caption(f"Signed in as **{st.session_state.profile['full_name']}**")
 
     _saved = st.session_state.form_data or {}
+
+        # ---------- RESTORE WIDGET STATE FROM form_data ----------
+    # Streamlit clears widget state when they aren't rendered (e.g. during preview).
+    # This block restores them so returning users see their previous answers.
+    if _saved:
+        _widget_defaults = {
+            "gender_radio": _saved.get("gender", "Male"),
+            "course_name_input": _saved.get("course_name", ""),
+            "inst_choice_selectbox": _saved.get("inst_choice", list(INSTITUTIONS.keys())[0]),
+            "addressee_title_input": _saved.get("addressee_title", "The Registrar,"),
+            "institution_name_input": _saved.get("institution_name", ""),
+            "campus_location_textarea": _saved.get("campus_location", ""),
+            "attester_type_selectbox": _saved.get("attester_type", "Parent"),
+            "parent_title_selectbox": _saved.get("parent_title", "Mr."),
+            "parent_name_input": _saved.get("parent_name", ""),
+            "parent_address_textarea": _saved.get("parent_address", ""),
+        }
+        for _k, _v in _widget_defaults.items():
+            if _k not in st.session_state:
+                st.session_state[_k] = _v
 
     # ---------- GENDER ----------
     _gender_options = ["Male", "Female"]
