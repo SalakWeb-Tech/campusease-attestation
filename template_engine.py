@@ -1,4 +1,9 @@
-# template_engine.py
+def render_instructions():
+    """Render the instructions page as a standalone HTML string."""
+    import os
+    path = os.path.join("templates", "layouts", "instructions.html")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()# template_engine.py
 # Combines a random layout + a random body, and injects student data + pronouns.
 # Bodies tagged with "requires" only appear when the parent's title matches.
 

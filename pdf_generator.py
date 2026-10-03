@@ -1,4 +1,30 @@
-# pdf_generator.py
+def html_to_pdf_with_instructions(letter_html: str, instructions_html: str, output_path: str):
+    """Convert the letter + instructions HTML to a single PDF with 2 pages.
+    Page 1 = letter, Page 2 = instructions.
+    Both HTML strings are complete HTML documents."""
+    import tempfile
+    from pathlib import Path
+    from pypdf import PdfWriter, PdfReader
+
+    # Render each HTML into its own PDF
+    with tempfile.NamedTemporaryFile(delete=False, suffix="_letter.pdf") as f1:
+        letter_pdf = f1.name
+    with tempfile.NamedTemporaryFile(delete=False, suffix="_instructions.pdf") as f2:
+        instructions_pdf = f2.name
+
+    html_to_pdf(letter_html, letter_pdf)
+    html_to_pdf(instructions_html, instructions_pdf)
+
+    # Merge page 1 (letter) + page 2 (instructions)
+    writer = PdfWriter()
+    writer.append(PdfReader(letter_pdf))
+    writer.append(PdfReader(instructions_pdf))
+    writer.write(output_path)
+    writer.close()
+
+    # Cleanup temp files
+    Path(letter_pdf).unlink(missing_ok=True)
+    Path(instructions_pdf).unlink(missing_ok=True)# pdf_generator.py
 # Uses Playwright (headless Chromium) to convert HTML -> A4 PDF.
 # Auto-shrinks content so every letter fits on ONE page.
 # Auto-installs the Chromium browser binary on first run (Streamlit Cloud).

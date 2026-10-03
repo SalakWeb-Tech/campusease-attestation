@@ -15,7 +15,8 @@ load_dotenv()
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 465
+SMTP_PORT = -587
+with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
 
 
 def _hash_code(code: str) -> str:

@@ -15,8 +15,8 @@ load_dotenv()
 
 _startup = time.time()
 
-from template_engine import render_letter
-from pdf_generator import html_to_pdf
+from template_engine import render_letter, render_instructions
+from pdf_generator import html_to_pdf, html_to_pdf_with_instructions
 from database import find_student, create_student, create_letter_request, check_has_downloaded, get_latest_letter_request
 from email_sender import generate_and_send_code, verify_code
 
@@ -465,7 +465,8 @@ if st.query_params.get("admin") == "1":
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as _tmp:
                 _pdf_path = _tmp.name
-            html_to_pdf(_html, _pdf_path)
+            _admin_instructions = render_instructions()
+            html_to_pdf_with_instructions(_html, _admin_instructions, _pdf_path)
             with open(_pdf_path, "rb") as _fh:
                 _pdf_bytes = _fh.read()
             Path(_pdf_path).unlink(missing_ok=True)
@@ -709,7 +710,7 @@ elif st.session_state.step == 2:
             st.rerun()
     with col_b:
         if st.button("Preview Letter", key="preview_letter_btn"):
-             _missing = []
+            _missing = []
             if not course_name.strip():
                 _missing.append("Course / Department")
             if not institution_name.strip():
@@ -723,8 +724,6 @@ elif st.session_state.step == 2:
 
             if _missing:
                 st.error("Please fill in: " + ", ".join(_missing))
-            else:
-                # ... rest of preview code
             else:
                 data = {
                     "student_name": st.session_state.profile["full_name"],
@@ -939,7 +938,8 @@ elif st.session_state.step == 3:
         with st.spinner("Preparing your PDF..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp_path = tmp.name
-            html_to_pdf(active_html, tmp_path)
+            _instructions_html = render_instructions()
+            html_to_pdf_with_instructions(active_html, _instructions_html, tmp_path)
             with open(tmp_path, "rb") as f:
                 st.session_state.pdf_bytes = f.read()
             Path(tmp_path).unlink(missing_ok=True)
