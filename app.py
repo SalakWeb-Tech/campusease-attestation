@@ -560,7 +560,6 @@ if st.session_state.step == 1:
                     st.session_state.step = 99
                     st.rerun()
                 else:
-                else:
                     # NO — they started but never finished. Let them continue.
                     st.session_state.profile = {
                         "id": existing["id"],
