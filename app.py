@@ -551,11 +551,28 @@ if st.session_state.step == 1:
             phone_clean = phone.strip()
 
             existing = find_student(phone=phone_clean)
+
             if existing:
-                st.session_state.duplicate_student = existing
-                st.session_state.step = 99
-                st.rerun()
+                # Phone exists. Has this person actually downloaded a letter?
+                if check_has_downloaded(existing["id"]):
+                    # YES — they finished before. Send to Step 99.
+                    st.session_state.duplicate_student = existing
+                    st.session_state.step = 99
+                    st.rerun()
+                else:
+                    # NO — they started but never finished. Let them continue.
+                    st.session_state.profile = {
+                        "id": existing["id"],
+                        "full_name": existing["full_name"],
+                        "dob_day": existing.get("dob_day"),
+                        "dob_month": existing.get("dob_month"),
+                        "dob_year": existing.get("dob_year"),
+                        "phone": existing["phone"],
+                    }
+                    st.session_state.step = 2
+                    st.rerun()
             else:
+                # Brand new phone number
                 new_row = create_student(
                     full_name=full_name.strip(),
                     dob_day=day,
@@ -573,7 +590,6 @@ if st.session_state.step == 1:
                 }
                 st.session_state.step = 2
                 st.rerun()
-
 # ============================================================
 # STEP 2 — LETTER DETAILS
 # ============================================================
@@ -1056,8 +1072,23 @@ elif st.session_state.step == 99:
             st.error("Please confirm your friend consents.")
         else:
             friend_existing = find_student(phone=friend_phone.strip())
+
             if friend_existing:
-                st.error("That friend has also already generated a letter.")
+                if check_has_downloaded(friend_existing["id"]):
+                    st.error("That friend has also already downloaded a letter.")
+                else:
+                    # Friend started but never finished — resume them
+                    st.session_state.profile = {
+                        "id": friend_existing["id"],
+                        "full_name": friend_existing["full_name"],
+                        "dob_day": friend_existing.get("dob_day"),
+                        "dob_month": friend_existing.get("dob_month"),
+                        "dob_year": friend_existing.get("dob_year"),
+                        "phone": friend_existing["phone"],
+                    }
+                    st.session_state.duplicate_student = None
+                    st.session_state.step = 2
+                    st.rerun()
             else:
                 new_row = create_student(
                     full_name=friend_name.strip(),
@@ -1075,11 +1106,6 @@ elif st.session_state.step == 99:
                 st.session_state.duplicate_student = None
                 st.session_state.step = 2
                 st.rerun()
-
-    if st.button("←  Back to Sign Up"):
-        st.session_state.duplicate_student = None
-        st.session_state.step = 1
-        st.rerun()
 
 
 
