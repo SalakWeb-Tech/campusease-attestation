@@ -560,6 +560,7 @@ if st.session_state.step == 1:
                     st.session_state.step = 99
                     st.rerun()
                 else:
+                else:
                     # NO — they started but never finished. Let them continue.
                     st.session_state.profile = {
                         "id": existing["id"],
@@ -569,6 +570,35 @@ if st.session_state.step == 1:
                         "dob_year": existing.get("dob_year"),
                         "phone": existing["phone"],
                     }
+
+                    # Load their last letter request (if any) to pre-fill the form
+                    _prev = get_latest_letter_request(existing["id"])
+                    if _prev:
+                        # Try to match their previous institution name to one of our known options
+                        _inst_names = list(INSTITUTIONS.keys())
+                        _prev_inst = _prev.get("institution_name", "")
+                        _matched_inst = None
+                        for _name in _inst_names:
+                            _data = INSTITUTIONS.get(_name)
+                            if _data and _data.get("institution_name") == _prev_inst:
+                                _matched_inst = _name
+                                break
+                        if not _matched_inst:
+                            _matched_inst = _inst_names[0]
+
+                        st.session_state.form_data = {
+                            "gender": _prev.get("gender", "Male"),
+                            "course_name": _prev.get("course_name", ""),
+                            "inst_choice": _matched_inst,
+                            "addressee_title": _prev.get("addressee_title", "The Registrar,"),
+                            "institution_name": _prev.get("institution_name", ""),
+                            "campus_location": _prev.get("campus_location", ""),
+                            "attester_type": _prev.get("attester_type", "Parent"),
+                            "parent_title": _prev.get("parent_title", "Mr."),
+                            "parent_name": _prev.get("parent_name", ""),
+                            "parent_address": _prev.get("parent_address", ""),
+                        }
+
                     st.session_state.step = 2
                     st.rerun()
             else:
@@ -1104,10 +1134,39 @@ elif st.session_state.step == 99:
                         "dob_year": friend_existing.get("dob_year"),
                         "phone": friend_existing["phone"],
                     }
+
+                    # Load their last letter request (if any) to pre-fill the form
+                    _prev = get_latest_letter_request(friend_existing["id"])
+                    if _prev:
+                        _inst_names = list(INSTITUTIONS.keys())
+                        _prev_inst = _prev.get("institution_name", "")
+                        _matched_inst = None
+                        for _name in _inst_names:
+                            _data = INSTITUTIONS.get(_name)
+                            if _data and _data.get("institution_name") == _prev_inst:
+                                _matched_inst = _name
+                                break
+                        if not _matched_inst:
+                            _matched_inst = _inst_names[0]
+
+                        st.session_state.form_data = {
+                            "gender": _prev.get("gender", "Male"),
+                            "course_name": _prev.get("course_name", ""),
+                            "inst_choice": _matched_inst,
+                            "addressee_title": _prev.get("addressee_title", "The Registrar,"),
+                            "institution_name": _prev.get("institution_name", ""),
+                            "campus_location": _prev.get("campus_location", ""),
+                            "attester_type": _prev.get("attester_type", "Parent"),
+                            "parent_title": _prev.get("parent_title", "Mr."),
+                            "parent_name": _prev.get("parent_name", ""),
+                            "parent_address": _prev.get("parent_address", ""),
+                        }
+
                     st.session_state.duplicate_student = None
                     st.session_state.step = 2
                     st.rerun()
             else:
+                # Brand new friend
                 new_row = create_student(
                     full_name=friend_name.strip(),
                     dob_day=1, dob_month=1, dob_year=2000,
