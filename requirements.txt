@@ -2,5 +2,4 @@ streamlit
 playwright
 python-dotenv
 supabase
-supadnspypdf
 pypdf
