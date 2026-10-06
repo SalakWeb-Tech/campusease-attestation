@@ -17,7 +17,7 @@ _startup = time.time()
 
 from template_engine import render_letter, render_instructions
 from pdf_generator import html_to_pdf, html_to_pdf_with_instructions
-from database import find_student, create_student, create_letter_request, check_has_downloaded, get_latest_letter_request
+from database import find_student, create_student, create_letter_request, check_has_downloaded, get_latest_letter_request, supabase
 from email_sender import generate_and_send_code, verify_code
 
 # ============================================================
@@ -405,6 +405,11 @@ if st.query_params.get("admin") == "1":
 
         st.markdown("### Edit details")
         with st.form("admin_edit_form"):
+            _e_student_name = st.text_input(
+                "Student Full Name",
+                value=_stored["student_name"],
+                key="admin_student_name",
+            )
             _e_gender = st.radio(
                 "Gender", ["Male", "Female"],
                 index=0 if _stored["gender"] == "Male" else 1,
@@ -435,7 +440,7 @@ if st.query_params.get("admin") == "1":
 
         if _apply:
             st.session_state.admin_edited = {
-                "student_name": _student["full_name"],
+                "student_name": _e_student_name.strip() or _student["full_name"],
                 "gender": _e_gender,
                 "course_name": _e_course.strip(),
                 "institution_name": _e_inst.strip(),
@@ -449,6 +454,17 @@ if st.query_params.get("admin") == "1":
                 "attester_label": _e_attester,
                 "letter_date": _e_date,
             }
+            # Persist the corrected name back to the students table
+            if _e_student_name.strip() and _e_student_name.strip() != _student["full_name"]:
+                try:
+                    supabase.table("students") \
+                        .update({"full_name": _e_student_name.strip()}) \
+                        .eq("id", _student["id"]) \
+                        .execute()
+                    _student["full_name"] = _e_student_name.strip()
+                except Exception as _e:
+                    st.warning(f"Name saved in letter but not in students table: {_e}")
+
             st.rerun()
 
         # Build render data
