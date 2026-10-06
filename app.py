@@ -1228,7 +1228,12 @@ elif st.session_state.step == 99:
         "Each student can generate one attestation letter to prevent abuse."
     )
 
-    if st.button("📄 I lost my letter — Request a re-issue", use_container_width=True, key="lost_letter_btn"):
+    if st.button(
+        "I lost my letter — Request a re-issue",
+        icon=":material/description:",
+        use_container_width=True,
+        key="lost_letter_btn",
+    ):
         st.session_state.lost_name = existing.get("full_name", "")
         st.session_state.lost_phone = existing.get("phone", "")
         st.session_state.step = 100
