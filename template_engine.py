@@ -42,9 +42,13 @@ def _body_to_html(body_text: str) -> str:
 
 
 def _pick_layout_name() -> str:
-    files = sorted([f for f in os.listdir(LAYOUTS_DIR) if f.endswith(".html")])
+    # Only pick real layout files. Never pick helper files like instructions.html.
+    files = sorted([
+        f for f in os.listdir(LAYOUTS_DIR)
+        if f.startswith("layout_") and f.endswith(".html")
+    ])
     if not files:
-        raise RuntimeError("No layouts found in templates/layouts/")
+        raise RuntimeError("No layout_*.html files found in templates/layouts/")
     return random.choice(files)
 
 
